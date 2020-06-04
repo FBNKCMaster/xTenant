@@ -1,0 +1,38 @@
+{
+    "name": "fbnkcmaster/xtenant",
+    "description": "Make your Laravel app multi-tenant ready easily",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Farid BEN KACEM",
+            "email": "FBNKCMaster@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "FBNKCMaster\\xTenant\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "FBNKCMaster\\xTenant\\Providers\\ServiceProvider"
+            ]
+        }
+    },
+    "require-dev": {
+        "orchestra/testbench": "^5.2",
+        "orchestra/testbench-browser-kit": "^5.1"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-f": "vendor/bin/phpunit --filter"
+    }
+}
