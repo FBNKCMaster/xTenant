@@ -8,8 +8,7 @@ $superAdminSubdomain = XTenantParam::getSuperAdminSubdomain();
 
 Route::domain('{subdomain}.' . $domain)->group(function () use ($superAdminSubdomain) {
 
-    // http://first.demo-app.test/profiles/1.jpeg
-    // -> http://first.demo-app.test/second/public/profiles/1.jpeg
+    // Redirect static assets
     Route::get('{any}', function ($subdomain, $any) {
         $extensions = [
             'jpg', 'jpeg', 'png', 'gif', 'svg',
