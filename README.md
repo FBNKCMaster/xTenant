@@ -1,5 +1,5 @@
 <p>
-  # ![xTenant](xTenant_Logo.png)
+  ![xTenant](xTenant_Logo.png)
   xTenant handles everything for you to make your Laravel app multi-tenant ready with ease.
 </p>
 
