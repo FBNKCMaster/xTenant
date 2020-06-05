@@ -1,4 +1,4 @@
-# ![Laravel Example App](xTenant_Logo.png)
+# ![xTenant Logo](xTenant_Logo.png)
 xTenant handles everything for you to make your Laravel app multi-tenant ready with ease.
 
 ------
