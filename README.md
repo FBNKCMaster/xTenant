@@ -1,5 +1,8 @@
 # ![xTenant Logo](xTenant_Logo.png)
-xTenant handles everything for you to make your Laravel app multi-tenant ready with ease.
+
+> ### xTenant handles everything for you to make your Laravel app multi-tenant ready with ease.
+
+(WARRANTY: This work still in beta stage, so no guarantees to use for production)
 
 ------
 
@@ -72,7 +75,6 @@ Then you will be asked if you want to run migrations, seeds and create directory
 - SuperAdmin web interface to manage tenants
 - PostgreSQL support
 - Handeling Queues
-- Handeling Events
 
 ## FAQ
 - Is it free?
