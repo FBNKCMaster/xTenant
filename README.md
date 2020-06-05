@@ -58,8 +58,10 @@ Here are the steps and commands you will need to use this package:
     php artisan xtenant:new
 
 You will have to choose a subdomain, a name and a description for this tenant.
+
 If the subdomain already exists, you will be asked to edit or override it.
-The you will be asked if you want to run migrations, seeds and create directory for this tenant.
+
+Then you will be asked if you want to run migrations, seeds and create directory for this tenant.
 
 3/ That's all. If everything is ok you will be able to access your tenant at:
     
