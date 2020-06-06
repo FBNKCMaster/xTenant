@@ -61,6 +61,26 @@ class ServiceProvider extends Base
      */
     public function register()
     {
-        // 
+        // Update APP_URL & ASSET_URL base
+        $request = $this->app->request;
+        $scheme = $request->getScheme();
+        $host = $request->getHost();
+
+        //if (!is_null($allowWww) && $allowWww == true && strpos($host, 'www.') === 0) {
+            $host = str_replace('www.', '', $host);
+        //}
+
+        // To avoid "Undefined offset" for list function
+        // use array_pad() to prepend empty subdomain
+        $nParts = substr_count($host, '.') > 1 ? 2 : 1;
+        list($subdomain, $domain) = array_pad(explode('.', $host, $nParts), -2, null);
+        
+        $appUrl = $scheme . '://' . $domain;
+        $assetUrl = $appUrl . '/' . ($subdomain ? $subdomain . '/' : '')  . 'public';
+        
+        config([
+            'app.url' => $appUrl,
+            'app.asset_url' => $assetUrl,
+        ]);
     }
 }
