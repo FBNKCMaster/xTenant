@@ -39,9 +39,6 @@ class XTenantHelper
     {
         // Save default database
         $defaultDatabase = self::getDefaultDatabase();
-                    
-        // Get tenant's database
-        //$database = $this->getTenantDatabase($subdomain);
         
         if ($database) {
             // Connect to the tenant's database
@@ -76,9 +73,6 @@ class XTenantHelper
     {
         // Save default database
         $defaultDatabase = self::getDefaultDatabase();
-
-        // Get tenant's database
-        //$database = $this->getTenantDatabase($subdomain);
 
         if ($database) {
             // Connect to the tenant's database
@@ -214,18 +208,13 @@ class XTenantHelper
         return $messageBag;
     }
 
-    /* private static function getTenantDatabase($subdomain)
-    {
-        return (Tenant::where('subdomain', $subdomain)->first() ?? null)->database ?? null;
-    } */
-
     private static function getDefaultDatabase()
     {
         $defaultConnection = \DB::getDefaultConnection();
         return config()->get('database.connections.' . $defaultConnection . '.database');
     }
 
-    private static function getDatabaseConnectionType()
+    public static function getDatabaseConnectionType()
     {
         return str_replace('Illuminate\Database\\', '', get_class(\DB::connection()));
     }
@@ -334,30 +323,28 @@ class XTenantHelper
 
     private static function dropDatabase($database)
     {
-        try {
-            // https://laravel-tricks.com/tricks/drop-database
-            // Schema::getConnection()->getDoctrineSchemaManager()->dropDatabase("`{$database}`");
-            
-            // try to drop database
-            //if (\DB::statement('DROP DATABASE IF EXISTS :db_name', ['db_name' => $database])) {
-            $sqlQuery = "'DROP DATABASE IF EXISTS '$database'";
-            if (\DB::statement($sqlQuery)) {
-                return true;
-            }
-
-        } catch (\PDOException $e) {
-            // it's sqlite connection
-            if ($e->getCode() == 'HY000') {
-
+        $dbConnectionType = self::getDatabaseConnectionType();
+        
+        switch($dbConnectionType) {
+            case 'SQLiteConnection':
                 $database = database_path($database);
-
-                if (@unlink($database)) {
-                    return true;
+                return is_file($database) && @unlink($database);
+                break;
+            
+            case 'MySqlConnection': case 'PostgresConnection': case 'SqlServerConnection':
+                try {
+                    //if (\DB::statement('DROP DATABASE IF EXISTS :db_name', ['db_name' => $database])) {
+                    $sqlQuery = "'DROP DATABASE IF EXISTS '$database'";
+                    return \DB::statement($sqlQuery);
+                } catch (\PDOException $e) {
+                    return false;
                 }
-            }
+                break;
+            
+            default:
+                return null;
+                break;
         }
-
-        return false;
     }
 
     public static function backupDatabase($database, $outputFile = null)
@@ -366,10 +353,6 @@ class XTenantHelper
         $outputFile = $outputFile ?? database_path($database . '_' . date('YmdHis') . '_Backup');
         $connectionType = \DB::getDefaultConnection();
         $connection = config('database.connections.' . $connectionType);
-        //$connection = config('database.connections.default');
-        //dd(\DB::getDefaultConnection());
-        //dd($dbConnectionType);
-        //dd($connection);
         switch($dbConnectionType) {
             case 'SQLiteConnection':
                 return self::backupSQLiteDatabase($database, $outputFile);
@@ -421,25 +404,6 @@ class XTenantHelper
 
     private static function backupMySqlDatabase($database, $outputFile, $connection)
     {
-        /* 
-        $connection = [
-            "driver" => "mysql"
-            "url" => null
-            "host" => "127.0.0.1"
-            "port" => "3306"
-            "database" => "laratest"
-            "username" => "root"
-            "password" => "1234567890"
-            "unix_socket" => ""
-            "charset" => "utf8mb4"
-            "collation" => "utf8mb4_unicode_ci"
-            "prefix" => ""
-            "prefix_indexes" => true
-            "strict" => true
-            "engine" => null
-            "options" => []
-        ] */
-
         $command = [
             '/usr/local/mysql/bin/mysqldump',
             '--user=' . $connection['username'],

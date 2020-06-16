@@ -8,6 +8,7 @@ use Str;
 
 use FBNKCMaster\xTenant\Models\Tenant;
 use FBNKCMaster\xTenant\Models\XTenantSetting;
+use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
 use Illuminate\Support\Facades\Route;
 
@@ -32,11 +33,6 @@ class SelectTenant
 
             // Get settings
             $xTenantSettings = XTenantSetting::getSettings();
-
-            // This is for the demo app
-            //if (Route::currentRouteName() == 'welcome') {
-            //    session(['tenants' => Tenant::getAllTenants()]);
-            //}
 
             // Check if tenant was registred
             $result = Tenant::findTenant($request, $xTenantSettings->allow_www);
@@ -89,11 +85,9 @@ class SelectTenant
             }
 
             if (is_null($tenant) || is_null($database)) {
-                //dd('[' . $subdomain . '] doesn\'t exist. You should run `php artisan xtenant:new` to register it.');                    
                 abort(403, '[' . $subdomain . '] doesn\'t exist. You should run `php artisan xtenant:new` to register it.');
             }
         } else {
-            //dd('You should run `php artisan xtenant:setup` to setup xTenant.');
             abort(403, 'You should run `php artisan xtenant:setup` first to setup xTenant.');
         }
 
@@ -102,22 +96,21 @@ class SelectTenant
 
     private function getTenantsDatabase($subdomain)
     {
-        $databaseName = $subdomain . '.db';
-        try {
-            $sqlQuery = "SHOW DATABASES LIKE '$databaseName'";
-            $result = DB::select($sqlQuery);
-            return !empty($result) ? $databaseName : null;
-        } catch (\PDOException $e) {
-            // It's sqlite connection
-            if ($e->getCode() == 'HY000') {
+        $dbConnectionType = XTenantHelper::getDatabaseConnectionType();
+        
+        switch($dbConnectionType) {
+            case 'SQLiteConnection':
                 return is_file(database_path($databaseName)) ? database_path($databaseName) : null;
-            }
-
-            return null;
+                break;
+            
+            case 'MySqlConnection': case 'PostgresConnection': case 'SqlServerConnection':
+                return $databaseName;
+                break;
+            
+            default:
+                return null;
+                break;
         }
-        // TODO:
-        // Add support for PostgreSQL
-        // > SELECT datname FROM pg_database;
     }
 
     private function checkSession($request, $tenantId)
