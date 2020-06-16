@@ -5,7 +5,8 @@ namespace FBNKCMaster\xTenant\Console\Commands;
 use Artisan;
 use Illuminate\Console\Command;
 
-use FBNKCMaster\xTenant\Models\XTenantParam;
+use FBNKCMaster\xTenant\Models\XTenantSetting;
+use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
 class Setup extends Command
 {
@@ -48,13 +49,13 @@ class Setup extends Command
         //dump(\DB::getDatabaseName());
         $bOverride = false;
         // Check if it's already setup
-        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_params')) {
+        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_settings')) {
             
-            $params = $this->getStoredParams();
+            $settings = XTenantSetting::getSettings();
             
-            if ($params && $params->super_admin_subdomain) {
-                // Ask overriding existing params
-                $choice = $this->choice('Override existing setup? [ superadmin\'s subdomain: ' . $params->super_admin_subdomain . ' ]', [
+            if ($settings && $settings->super_admin_subdomain) {
+                // Ask overriding existing settings
+                $choice = $this->choice('Override existing setup? [ superadmin\'s subdomain: ' . $settings->super_admin_subdomain . ' ]', [
                     'No',
                     'Yes',
                 ]);
@@ -62,32 +63,32 @@ class Setup extends Command
                 if ($choice == 'Yes') {
                     // Reset tables
                     $this->createTables(true);
-                    // Ask for new params to store
-                    $this->storeParams(true);
+                    // Ask for new settings to store
+                    $this->storeSettings(true);
                     
                     $bOverride = true;
-                    $params = null;
+                    $settings = null;
                 }
             } else {
-                // Ask for params to store
-                $this->storeParams();
+                // Ask for settings to store
+                $this->storeSettings();
             }
         
         } else {
             // Create tables
             $this->createTables();
-            // Ask for params to store
-            $this->storeParams();
+            // Ask for settings to store
+            $this->storeSettings();
         }
         
-        // Get stored params
-        $params = $params ?? $this->getStoredParams();
+        // Get stored settings
+        $settings = $settings ?? XTenantSetting::getSettings();
         
-        //dump(' > Stored Param > ' . $params->domain);
-        if ($params && $params->super_admin_subdomain)
+        //dump(' > Stored Setting > ' . $settings->domain);
+        if ($settings && $settings->super_admin_subdomain)
         {
             // Show success message and admin url
-            $this->info(' >' . ($bOverride ? ' New admin' : ' Admin') . ' url: http://' . $params->super_admin_subdomain . '.[your_domain]');
+            $this->info(' >' . ($bOverride ? ' New admin' : ' Admin') . ' url: http://' . $settings->super_admin_subdomain . '.[your_domain]');
             
         } else {
             // Show error message
@@ -108,22 +109,53 @@ class Setup extends Command
         $this->line(Artisan::output());
     }
 
-    private function storeParams($bOverride = false)
+    private function storeSettings($bOverride = false)
     {
         // Ask for super admin subdomain
         $superAdminSubDomain = $this->ask('Enter' . ($bOverride ? ' new' : '') . ' SuperAdmin subdomain');
+        if (empty(trim($superAdminSubDomain))) {
+            $this->error('Sorry, the SuperAdmin subdomain cannot be empty. Repeat again.');
+            return;
+        }
+        // Ask for super admin email
+        $email = $this->ask('Enter SuperAdmin email (this will be your login)');
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->error('Sorry, this is an invalid email format. Repeat again.');
+            return;
+        }
+
+        // Ask for super admin password
+        $password = $this->secret('Enter SuperAdmin password (must be at least 8 characters long)');
+        if (strlen($password) < 8) {
+            $this->error('Sorry, the password is too short. It must be at least 8 characters.');
+            return;
+        }
+
+        // Ask for password confirmation
+        $password_confirm = $this->secret('Confirm password');
+        if ($password !== $password_confirm) {
+            $this->error('Sorry, the passwords you entered do not match. Repeat again.');
+            return;
+        }
+
         // Allow "www" even with subdomain ?
         $allowWww = $this->choice('Allow "www"?', ['Yes', 'No'], 1);
         
-        XTenantParam::create([
+        // Store 
+        $bCreated = XTenantSetting::truncate()->create([
             'super_admin_subdomain' => $superAdminSubDomain,
+            'email' => $email,
+            'password' => $password, // Don't panic! Encryption is done inside the model ;-)
             'allow_www' => $allowWww == 'Yes',
         ]);
-    }
 
-    private function getStoredParams()
-    {
-        return XTenantParam::first();
+        if ($bCreated) {
+            // Create directory
+            XTenantHelper::createDirectory($superAdminSubDomain, 'fresh', $this);
+            // Create symbolic link
+            XTenantHelper::createSymlink($superAdminSubDomain, $this);
+        }
+        
     }
 
 }

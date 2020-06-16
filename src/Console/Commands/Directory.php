@@ -4,9 +4,9 @@ namespace FBNKCMaster\xTenant\Console\Commands;
 
 use Artisan;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 
 use FBNKCMaster\xTenant\Models\Tenant;
+use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
 class Directory extends Command
 {
@@ -16,8 +16,7 @@ class Directory extends Command
      * @var string
      */
     protected $signature = 'xtenant:directory
-                            {tenant_name? : Tenant name}
-                            {action? : Action}';
+                            {tenant_subdomain? : Tenant subdomain}';
 
     /**
      * The console command description.
@@ -44,8 +43,8 @@ class Directory extends Command
     public function handle()
     {
         // Check if it's already setup
-        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_params')) {
-            $this->tenantName = $this->argument('tenant_name');
+        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_settings')) {
+            $this->tenantName = $this->argument('tenant_subdomain');
             if (is_null($this->tenantName)) {
                 $this->tenantName = $this->ask('Enter tenant\'s subdomain');
             }
@@ -54,11 +53,11 @@ class Directory extends Command
             if (Tenant::where('subdomain', $subdomain)->first()) {
 
                 // Ask confirmation
-                $choice = $this->choice('Are you sure you want to create a directory for [' . $this->tenantName . ']?', ['Yes', 'No'], 1);
+                $choice = $this->choice('Do you want to create a directory for [' . $this->tenantName . ']?', ['Yes', 'No'], 1);
 
                 if ($choice == 'Yes') {
-                    // 
-                    $this->createDirectory($subdomain);
+                    // Create directory, ask to backup if already exists
+                    XTenantHelper::createDirectory($subdomain, 'ask', $this);
                 }
 
             } else {
@@ -72,40 +71,4 @@ class Directory extends Command
         }
     }
 
-    private function createDirectory($subdomain)
-    {
-        $subdomain = strtolower($subdomain);
-        // Check if directory with same name exists
-        if (is_dir(storage_path('app/' . $subdomain))) {
-            $choice = $this->choice('A directory with same name [' . $this->tenantName . '] exits. Do you want to back it up?', ['Yes', 'No'], 1);
-            
-            if ($choice == 'Yes') {
-                rename(storage_path('app/' . $subdomain), storage_path('app/' . $subdomain . '_BAK'));
-                $this->line('You can find the old directory here: ' . storage_path('app/' . $subdomain . '_BAK'));
-            } else {
-                $this->rrmdir(storage_path('app/' . $subdomain));
-                $this->line('Old directory completely removed.');
-            }
-        }
-
-        // Create tenant's directory in storage/app
-        $this->line('Creating directory: ' . base_path('storage/app/' . $subdomain));
-        Storage::makeDirectory($subdomain, 0777/* , $recursive = false, $force = false */);
-    }
-
-    // https://stackoverflow.com/a/3338133
-    private function rrmdir($dir) { 
-        if (is_dir($dir)) { 
-            $objects = scandir($dir); 
-            foreach ($objects as $object) { 
-                if ($object != "." && $object != "..") { 
-                    if (is_dir($dir."/".$object))
-                        rrmdir($dir."/".$object);
-                    else
-                        unlink($dir."/".$object); 
-                } 
-            }
-            rmdir($dir); 
-        } 
-    }
 }

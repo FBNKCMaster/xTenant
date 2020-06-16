@@ -6,7 +6,6 @@ use Artisan;
 use Illuminate\Console\Command;
 
 use FBNKCMaster\xTenant\Models\Tenant;
-use FBNKCMaster\xTenant\Models\XTenantParam;
 
 class Edit extends Command
 {
@@ -16,7 +15,7 @@ class Edit extends Command
      * @var string
      */
     protected $signature = 'xtenant:edit
-                            {tenant_name? : Tenant name}';
+                            {tenant_subdomain? : Tenant name}';
 
     /**
      * The console command description.
@@ -43,47 +42,46 @@ class Edit extends Command
     public function handle()
     {
         // Check if it's already setup
-        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_params')) {
-            $this->tenantName = $this->argument('tenant_name');
-            if (is_null($this->tenantName)) {
-                $this->tenantName = $this->ask('Enter tenant\'s subdomain');
+        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_settings')) {
+            $subdomain = $this->argument('tenant_subdomain');
+            if (is_null($subdomain)) {
+                $subdomain = $this->ask('Enter tenant\'s subdomain');
             }
-            $subdomain = strtolower(trim($this->tenantName));
+            $subdomain = strtolower(trim($subdomain));
             // Check if it exists
             if (Tenant::where('subdomain', $subdomain)->first()) {
 
                 // Ask confirmation
-                $choice = $this->choice('Are you sure you want to edit [' . $this->tenantName . ']?', ['Yes', 'No'], 1);
+                $choice = $this->choice('Are you sure you want to edit [' . $subdomain . ']?', ['Yes', 'No'], 1);
 
                 if ($choice == 'Yes') {
-                    if ($this->updateParams($subdomain)) {
+                    if ($this->updateSettings($subdomain)) {
                         
                         // Ask to run migrations
-                        $this->call('xtenant:migrate', ['tenant_name' => $subdomain]);
+                        $this->call('xtenant:migrate', ['tenant_subdomain' => $subdomain]);
                         
                         // Ask to run seeds
-                        $this->call('xtenant:seed', ['tenant_name' => $subdomain]);
+                        $this->call('xtenant:seed', ['tenant_subdomain' => $subdomain]);
                         
                         // Ask to create directory for this tenant in storage/app/public
                         // or erase existing content in it
-                        //$this->createDirectory($subdomain, true);
-                        $this->call('xtenant:directory', ['tenant_name' => $subdomain]);
+                        $this->call('xtenant:directory', ['tenant_subdomain' => $subdomain]);
                         
                         // Show success message
                         $this->info(' > ' . $subdomain. ' override successfully!');
                         $this->info(' > ' . $subdomain . ' url: http://' . $subdomain . '.[your_domain]');
 
                     } else {
-                        $this->error('ERROR: Could not edit [' . $this->tenantName . ']. Please check your connection.');
+                        $this->error('ERROR: Could not edit [' . $subdomain . ']. Please check your connection.');
                     }
 
                 } else {
-                    $this->info(' > Operation canceled. Nothing has changed. You can still check  [' . $this->tenantName . '] at:');
+                    $this->info(' > Operation canceled. Nothing has changed. You can still check  [' . $subdomain . '] at:');
                     $this->info(' > ' . $subdomain . ' url: http://' . $subdomain . '.[your_domain]');
                 }
             } else {
                 // Show message
-                $this->warn(' ! This tenant [' . $this->tenantName . '] doesn\'t exist. Please make sure that you have entered it correctly.');
+                $this->warn(' ! This tenant [' . $subdomain . '] doesn\'t exist. Please make sure that you have entered it correctly.');
             }
 
         } else {
@@ -92,7 +90,7 @@ class Edit extends Command
         }
     }
 
-    private function updateParams($subdomain)
+    private function updateSettings($subdomain)
     {
         // Ask for name
         $name = $this->ask('Enter name');

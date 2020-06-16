@@ -9,7 +9,7 @@ use Tests\TestHelper as TestCase;
 use Illuminate\Http\Request;
 
 use FBNKCMaster\xTenant\Models\Tenant;
-use FBNKCMaster\xTenant\Models\XTenantParam;
+use FBNKCMaster\xTenant\Models\XTenantSetting;
 
 class ResolveTenantTest extends TestCase
 {
@@ -26,11 +26,11 @@ class ResolveTenantTest extends TestCase
         // make the request
         $request = Request::create('http://' . $subdomain . '.your_domain.test');
 
-        // get params
-        $xTenantParams = XTenantParam::getParams();
+        // get settings
+        $xTenantSettings = XTenantSetting::getSettings();
         
         // check if tenant was registred
-        $result = Tenant::findTenant($request, $xTenantParams->allow_www);
+        $result = Tenant::findTenant($request, $xTenantSettings->allow_www);
         $tenant = $result['tenant'];
 
         $this->assertEquals($result['subdomain'], $subdomain);
@@ -46,11 +46,11 @@ class ResolveTenantTest extends TestCase
         // make the request
         $request = Request::create('http://' . $subdomain . '.your_domain.test');
 
-        // get params
-        $xTenantParams = XTenantParam::getParams();
+        // get settings
+        $xTenantSettings = XTenantSetting::getSettings();
         
         // check if tenant was registred
-        $result = Tenant::findTenant($request, $xTenantParams->allow_www);
+        $result = Tenant::findTenant($request, $xTenantSettings->allow_www);
 
         
         $tenant = $result['tenant'];

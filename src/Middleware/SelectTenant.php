@@ -7,7 +7,7 @@ use DB;
 use Str;
 
 use FBNKCMaster\xTenant\Models\Tenant;
-use FBNKCMaster\xTenant\Models\XTenantParam;
+use FBNKCMaster\xTenant\Models\XTenantSetting;
 
 use Illuminate\Support\Facades\Route;
 
@@ -16,33 +16,38 @@ class SelectTenant
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @setting  \Illuminate\Http\Request  $request
+     * @setting  \Closure  $next
      * @return mixed
      */
     public function handle($request, Closure $next)
     {
         // Check if xTenant is setup
-        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_params')) {
+        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_settings')) {
 
             // Check if it's SuperAdmin
-            if (XTenantParam::isSuperAdmin($request)) {
+            if (XTenantSetting::isSuperAdmin($request)) {
                 return $next($request);
             }
 
-            // Get params
-            $xTenantParams = XTenantParam::getParams();
+            // Get settings
+            $xTenantSettings = XTenantSetting::getSettings();
 
             // This is for the demo app
-            if (Route::currentRouteName() == 'welcome') {
-                session(['tenants' => Tenant::getAllTenants()]);
-            }
+            //if (Route::currentRouteName() == 'welcome') {
+            //    session(['tenants' => Tenant::getAllTenants()]);
+            //}
 
             // Check if tenant was registred
-            $result = Tenant::findTenant($request, $xTenantParams->allow_www);
+            $result = Tenant::findTenant($request, $xTenantSettings->allow_www);
             $subdomain = $result['subdomain'];
             $tenant = $result['tenant'];
             if (!is_null($tenant)) {
+                // Check if the tenant is enabled
+                if (!$tenant->isEnabled()) {
+                    abort(403, 'This tenant is currently disabled.');
+                }
+
                 // Get tenant's database
                 $database = $this->getTenantsDatabase($subdomain);
                 // and check it
@@ -55,10 +60,10 @@ class SelectTenant
                         'xtenant.database.default' => $defaultDatabase,
                         'xtenant.database.current' => $database,
 
-                        'xtenant.domain' => XTenantParam::getDomain(),
-                        'xtenant.super_admin_subdomain' => $xTenantParams->super_admin_subdomain,
+                        'xtenant.domain' => XTenantSetting::getDomain(),
+                        'xtenant.super_admin_subdomain' => $xTenantSettings->super_admin_subdomain,
                         'xtenant.subdomain' => $subdomain,
-                        'xtenant.allow_www' => $xTenantParams->allow_www,
+                        'xtenant.allow_www' => $xTenantSettings->allow_www,
                         
                         'xtenant.name' => $tenant->name,
                         'xtenant.status' => $tenant->status,
@@ -84,10 +89,12 @@ class SelectTenant
             }
 
             if (is_null($tenant) || is_null($database)) {
-                dd('[' . $subdomain . '] doesn\'t exist. You should run `php artisan xtenant:new` to register it.');                    
+                //dd('[' . $subdomain . '] doesn\'t exist. You should run `php artisan xtenant:new` to register it.');                    
+                abort(403, '[' . $subdomain . '] doesn\'t exist. You should run `php artisan xtenant:new` to register it.');
             }
         } else {
-            dd('You should run `php artisan xtenant:setup` to setup xTenant.');
+            //dd('You should run `php artisan xtenant:setup` to setup xTenant.');
+            abort(403, 'You should run `php artisan xtenant:setup` first to setup xTenant.');
         }
 
         return $next($request);

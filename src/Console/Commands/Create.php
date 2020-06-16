@@ -6,7 +6,7 @@ use Artisan;
 use Illuminate\Console\Command;
 
 use FBNKCMaster\xTenant\Models\Tenant;
-use FBNKCMaster\xTenant\Models\XTenantParam;
+use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
 class Create extends Command
 {
@@ -41,45 +41,41 @@ class Create extends Command
      */
     public function handle()
     {
-        // xTenant's tables creation
-
         // Show message to the console
         $this->line('Create new tenant...');
 
         // Check if it's already setup
-        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_params')) {
+        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_settings')) {
 
-            // Ask for tenant's params
-            $tenantParams = $this->askForParams();
+            // Ask for tenant's settings
+            $tenantSettings = $this->askForSettings();
             
-            if (isset($tenantParams['database']) && isset($tenantParams['subdomain']) && isset($tenantParams['name']) && isset($tenantParams['description'])) {
+            if (isset($tenantSettings['database']) && isset($tenantSettings['subdomain']) && isset($tenantSettings['name']) && isset($tenantSettings['description'])) {
                 // Tenant already exists
-                $this->warn('This tenant [' . $tenantParams['subdomain'] . '] already exists.');
+                $this->warn('This tenant [' . $tenantSettings['subdomain'] . '] already exists.');
                 // Choose what to do
                 $choice = $this->choice('Do you want to override/destory it?', ['Override', 'Destroy', 'Cancel'], 2);
                 
                 switch ($choice) {
                     case 'Override':
-                        $this->call('xtenant:edit', ['tenant_name' => $tenantParams['subdomain']]);
-                        //$this->callSilent('xtenant:edit', ['tenant_name' => $tenant['subdomain']]);
+                        $this->call('xtenant:edit', ['tenant_subdomain' => $tenantSettings['subdomain']]);
                         $this->line(Artisan::output());
                         break;
                         
                     case 'Destroy':
-                        $this->call('xtenant:destroy', ['tenant_name' => $tenantParams['subdomain']]);
-                        //$this->callSilent('xtenant:destroy', ['tenant_name' => $tenant['subdomain']]);
+                        $this->call('xtenant:destroy', ['tenant_subdomain' => $tenantSettings['subdomain']]);
                         $this->line(Artisan::output());
                         // Now let's create it
-                        $this->createTenant($tenantParams);
+                        $this->createTenant($tenantSettings);
                         break;
                     
                     default:
-                        $this->info(' > ' . $tenantParams['subdomain'] . ' url: http://' . $tenantParams['subdomain'] . '.[your_domain]');
+                        $this->info(' > ' . $tenantSettings['subdomain'] . ' url: http://' . $tenantSettings['subdomain'] . '.[your_domain]');
                         break;
                 }
-            } else if (isset($tenantParams['subdomain']) && isset($tenantParams['name']) && isset($tenantParams['description'])) {
+            } else if (isset($tenantSettings['subdomain']) && isset($tenantSettings['name']) && isset($tenantSettings['description'])) {
                 // Let's create this tenant
-                $this->createTenant($tenantParams);
+                $this->createTenant($tenantSettings);
             }
 
         } else {
@@ -88,7 +84,7 @@ class Create extends Command
         }   
     }
 
-    private function askForParams()
+    private function askForSettings()
     {
         // Ask for subdomain
         $subdomain = $this->ask('Enter subdomain');
@@ -117,33 +113,31 @@ class Create extends Command
         }
     }
 
-    private function createTenant($tenantParams)
+    private function createTenant($tenantSettings)
     {
-        $database = $this->createDatabase($tenantParams['subdomain']);
+        // Create Database
+        $database = XTenantHelper::createDatabase($tenantSettings['subdomain']);
         
         if ($database) {
             $newTenant = Tenant::create([
-                'subdomain' => $tenantParams['subdomain'],
+                'subdomain' => $tenantSettings['subdomain'],
                 'database' => $database,
-                'name' => trim($tenantParams['name']),
-                'description' => trim($tenantParams['description']),
+                'name' => trim($tenantSettings['name']),
+                'description' => trim($tenantSettings['description']),
             ]);
 
             if ($newTenant) {
                 // Ask to run migrations
-                //$this->runMigrations($newTenant->database);
-                $this->call('xtenant:migrate', ['tenant_name' => $newTenant->subdomain]);
+                $this->call('xtenant:migrate', ['tenant_subdomain' => $newTenant->subdomain]);
                 
                 // Ask to run seeds
-                //$this->runSeeds();
-                $this->call('xtenant:seed', ['tenant_name' => $newTenant->subdomain]);
+                $this->call('xtenant:seed', ['tenant_subdomain' => $newTenant->subdomain]);
 
                 // Ask to create directory for this tenant in storage/app/public
-                //$this->createDirectory($newTenant->subdomain);
-                $this->call('xtenant:directory', ['tenant_name' => $newTenant->subdomain]);
+                $this->call('xtenant:directory', ['tenant_subdomain' => $newTenant->subdomain]);
 
                 // Create symbolic link
-                $this->createSymlink($newTenant->subdomain);
+                XTenantHelper::createSymlink($newTenant->subdomain, $this);
                 
                 // Show success message and url info
                 $this->info(' > ' . $newTenant->subdomain . ' created successfully!');
@@ -156,43 +150,6 @@ class Create extends Command
         if (!$database || !$newTenant) {
             $this->error('ERROR: Could not create this tenant. Please check your database connection.');
         }
-    }
-
-    private function createDatabase($subdomain)
-    {
-        $databaseName = $subdomain . '.db';
-        try {
-            // Try to create database for MySql/PostgreSQL connection
-            // Tried binding but didn't work
-            //  $sqlQuery = 'CREATE DATABASE IF NOT EXISTS :db_name DEFAULT CHARACTER SET utf8mb4';
-            //  \DB::statement($sqlQuery, ['db_name' => $databaseName]);
-            // So did it this way
-            $sqlQuery = 'CREATE DATABASE IF NOT EXISTS `' . $databaseName . '` DEFAULT CHARACTER SET utf8mb4';
-            if (\DB::statement($sqlQuery)) {
-                
-                return $databaseName;
-            }
-        } catch (\PDOException $e) {
-            // Otherwise it's SQLite connection
-            if ($e->getCode() == 'HY000') {
-
-                $databaseName = database_path($databaseName);
-
-                if (touch($databaseName)) {
-
-                    return $databaseName;
-                }
-            }
-
-            return false;
-        }
-    }
-
-    private function createSymlink($subdomain)
-    {
-        $link = public_path($subdomain);
-        $target = storage_path('app/' . $subdomain);
-        @symlink($target, $link);
     }
 
 }
