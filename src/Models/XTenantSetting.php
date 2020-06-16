@@ -2,19 +2,36 @@
 
 namespace FBNKCMaster\xTenant\Models;
 
-use Illuminate\Database\Eloquent\Model;
+//use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use \Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
-class XTenantParam extends Model
+class XTenantSetting extends Authenticatable
 {
+
+    protected $guard = 'superadmin';
+
     protected $fillable = [
         'super_admin_subdomain',
+        'email',
+        'password',
+        'name',
         'allow_www',
+    ];
+
+    protected $hidden = [
+        'password',
     ];
 
     protected $casts = [
         'allow_www' => 'boolean'
     ];
+
+    public function setPasswordAttribute($password)
+    {
+        $this->attributes['password'] = Hash::make($password);
+    }
 
     public static function isSuperAdmin(Request $request)
     {
@@ -23,16 +40,16 @@ class XTenantParam extends Model
         return self::where('super_admin_subdomain', $subdomain)->exists();
     }
 
-    public static function getParams()
+    public static function getSettings()
     {
         return self::first();
     }
 
     public static function getDomain()
     {
-        $xTenantParams = self::getParams();
-        $reservedSubdomains[] = ($xTenantParams->super_admin_subdomain ?? 'xtenant') . '.';
-        if ($xTenantParams->allow_www) {
+        $xTenantSettings = self::getSettings();
+        $reservedSubdomains[] = ($xTenantSettings->super_admin_subdomain ?? 'xtenant') . '.';
+        if ($xTenantSettings->allow_www) {
             $reservedSubdomains[] = 'www.';
         }
         $registredSubdomains = array_map(function ($subdomain) { return $subdomain . '.'; }, Tenant::getRegistredSubdomains()->toArray());
@@ -42,7 +59,7 @@ class XTenantParam extends Model
 
     public static function getSuperAdminSubdomain()
     {
-        $xTenantParams = self::getParams();
-        return $xTenantParams->super_admin_subdomain ?? 'xtenant';
+        $xTenantSettings = self::getSettings();
+        return $xTenantSettings->super_admin_subdomain ?? 'xtenant';
     }
 }

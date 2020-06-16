@@ -15,6 +15,15 @@ class Tenant extends Model
         'status',
     ];
 
+    protected $casts = [
+        'status' => 'boolean'
+    ];
+
+    public function isEnabled()
+    {
+        return $this->status;
+    }
+
     public static function findTenant(Request $request, $allowWww = null)
     {
         $host = $request->getHost();
@@ -33,7 +42,7 @@ class Tenant extends Model
 
     public static function getAllTenants()
     {
-        return self::all();
+        return self::get();
     }
 
     public static function getRegistredSubdomains()

@@ -12,7 +12,7 @@ use FBNKCMaster\xTenant\Models\Tenant;
 class DestroyTenantTest extends TestCase
 {
 
-    public function test_can_destroy_tenant_with_artisan_new_console_command()
+    public function test_can_destroy_tenant_with_artisan_destroy_console_command()
     {
         $subdomain = 'demo';
         $this->assertTrue(true);
@@ -45,7 +45,7 @@ class DestroyTenantTest extends TestCase
         $tenant = Tenant::where('subdomain', $subdomain)->first();
         $this->assertNull($tenant);
         $this->assertTrue(!is_dir(storage_path('app/' . $subdomain)));
-        $this->assertTrue(is_dir(storage_path('app/' . $subdomain . '_BAK')));
+        $this->assertTrue(is_dir(storage_path('app/' . $subdomain . '_' . date('YmdHis') . '_Backup')));
         // assert database doesn't exist
 
         // Connect to tenant's database

@@ -7,7 +7,8 @@ use DB;
 use Str;
 
 use FBNKCMaster\xTenant\Models\Tenant;
-use FBNKCMaster\xTenant\Models\XTenantParam;
+use FBNKCMaster\xTenant\Models\XTenantSetting;
+use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
 use Illuminate\Support\Facades\Route;
 
@@ -16,33 +17,33 @@ class SelectTenant
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @setting  \Illuminate\Http\Request  $request
+     * @setting  \Closure  $next
      * @return mixed
      */
     public function handle($request, Closure $next)
     {
         // Check if xTenant is setup
-        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_params')) {
+        if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_settings')) {
 
             // Check if it's SuperAdmin
-            if (XTenantParam::isSuperAdmin($request)) {
+            if (XTenantSetting::isSuperAdmin($request)) {
                 return $next($request);
             }
 
-            // Get params
-            $xTenantParams = XTenantParam::getParams();
-
-            // This is for the demo app
-            if (Route::currentRouteName() == 'welcome') {
-                session(['tenants' => Tenant::getAllTenants()]);
-            }
+            // Get settings
+            $xTenantSettings = XTenantSetting::getSettings();
 
             // Check if tenant was registred
-            $result = Tenant::findTenant($request, $xTenantParams->allow_www);
+            $result = Tenant::findTenant($request, $xTenantSettings->allow_www);
             $subdomain = $result['subdomain'];
             $tenant = $result['tenant'];
             if (!is_null($tenant)) {
+                // Check if the tenant is enabled
+                if (!$tenant->isEnabled()) {
+                    abort(403, 'This tenant is currently disabled.');
+                }
+
                 // Get tenant's database
                 $database = $this->getTenantsDatabase($subdomain);
                 // and check it
@@ -55,10 +56,10 @@ class SelectTenant
                         'xtenant.database.default' => $defaultDatabase,
                         'xtenant.database.current' => $database,
 
-                        'xtenant.domain' => XTenantParam::getDomain(),
-                        'xtenant.super_admin_subdomain' => $xTenantParams->super_admin_subdomain,
+                        'xtenant.domain' => XTenantSetting::getDomain(),
+                        'xtenant.super_admin_subdomain' => $xTenantSettings->super_admin_subdomain,
                         'xtenant.subdomain' => $subdomain,
-                        'xtenant.allow_www' => $xTenantParams->allow_www,
+                        'xtenant.allow_www' => $xTenantSettings->allow_www,
                         
                         'xtenant.name' => $tenant->name,
                         'xtenant.status' => $tenant->status,
@@ -84,10 +85,10 @@ class SelectTenant
             }
 
             if (is_null($tenant) || is_null($database)) {
-                dd('[' . $subdomain . '] doesn\'t exist. You should run `php artisan xtenant:new` to register it.');                    
+                abort(403, '[' . $subdomain . '] doesn\'t exist. You should run `php artisan xtenant:new` to register it.');
             }
         } else {
-            dd('You should run `php artisan xtenant:setup` to setup xTenant.');
+            abort(403, 'You should run `php artisan xtenant:setup` first to setup xTenant.');
         }
 
         return $next($request);
@@ -95,22 +96,21 @@ class SelectTenant
 
     private function getTenantsDatabase($subdomain)
     {
-        $databaseName = $subdomain . '.db';
-        try {
-            $sqlQuery = "SHOW DATABASES LIKE '$databaseName'";
-            $result = DB::select($sqlQuery);
-            return !empty($result) ? $databaseName : null;
-        } catch (\PDOException $e) {
-            // It's sqlite connection
-            if ($e->getCode() == 'HY000') {
+        $dbConnectionType = XTenantHelper::getDatabaseConnectionType();
+        
+        switch($dbConnectionType) {
+            case 'SQLiteConnection':
                 return is_file(database_path($databaseName)) ? database_path($databaseName) : null;
-            }
-
-            return null;
+                break;
+            
+            case 'MySqlConnection': case 'PostgresConnection': case 'SqlServerConnection':
+                return $databaseName;
+                break;
+            
+            default:
+                return null;
+                break;
         }
-        // TODO:
-        // Add support for PostgreSQL
-        // > SELECT datname FROM pg_database;
     }
 
     private function checkSession($request, $tenantId)
