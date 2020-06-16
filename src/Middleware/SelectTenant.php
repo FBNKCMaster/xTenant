@@ -96,11 +96,13 @@ class SelectTenant
 
     private function getTenantsDatabase($subdomain)
     {
+        $databaseName = $subdomain . '.db';
         $dbConnectionType = XTenantHelper::getDatabaseConnectionType();
         
         switch($dbConnectionType) {
             case 'SQLiteConnection':
-                return is_file(database_path($databaseName)) ? database_path($databaseName) : null;
+                $databaseName = database_path($databaseName);
+                return is_file($databaseName) ? $databaseName : null;
                 break;
             
             case 'MySqlConnection': case 'PostgresConnection': case 'SqlServerConnection':
