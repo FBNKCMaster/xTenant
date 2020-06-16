@@ -9,16 +9,17 @@
 ## PHILOSOPHY
 In summary: "<b>Plug & Play</b>".
 
-Who doesn't like it when "it just works" with no more steps to do or annoying configuration changes?
+Who doesn't like it when "it just works" with no more steps to do and no more annoying configuration changes?
 
-That's is the aim of this package: Just "<b>require & setup</b>". With no more steps, no additional configuration, and no mandatory code changing, you get your app multi-tenancy ready, and everything is handled for you to run multiple web apps with one single Laravel installation.
+That's the aim of this package: Just "<b>require & setup</b>". With no more steps, no additional configuration, and no mandatory code changing, you get your app multi-tenancy ready, and everything is handled for you to run multiple web apps with one single Laravel installation.
 
 ## FEATURES
 - Easy install
+- Console commands and Web interface
 - Multiple databases
 - Support: MySQL and SQLite
 - Subdomain tenants
-- Create/Edit/Delete
+- Manage tenants (name, description, image): Create/Edit/Delete + Enable/Disable
 - Backup & restore tenants' DBs & files
 
 ## INSTALLATION
@@ -55,6 +56,8 @@ Here are the steps and commands you will need to use this package:
   - The email address and password of the SuperAdmin
   - And finally, if you want to allow "www" for subdomains.
 
+# ![xTenant Setup via Console](xTenant_Setup_Console.png)
+
 2/ Create your first tenant
 
   You have two options:
@@ -69,6 +72,8 @@ If the subdomain already exists, you will be asked to edit or override it.
 
 Then you will be asked if you want to run migrations, seeds and create a directory for this tenant.
 
+# ![xTenant Create Tenant via Console](xTenant_Create_Tenant_Console.png)
+
 ##### via [ SuperAdmin Web Interface ]
 
   To create a new tenant or manage existing ones, you will need to access the SuperAdmin web interface:
@@ -78,6 +83,16 @@ Then you will be asked if you want to run migrations, seeds and create a directo
   Enter your credentials (SuperAdmin's email address and password) to connect.
   
   Then go ahead and click on the "Create New Tenant" red button to create your first tenant.
+
+# ![xTenant SuperAdmin Login via Web Interface](xTenant_SuperAdmin_Login_Web.png)
+
+# ![xTenant SuperAdmin Dashboard Web Interface](xTenant_SuperAdmin_Dashboard_Web.png)
+
+# ![xTenant SuperAdmin Update Settings via Web Interface](xTenant_SuperAdmin_Settings_Web.png)
+
+# ![xTenant SuperAdmin Create Tenant via Web Interface](xTenant_SuperAdmin_Create_Tenant_Web.png)
+
+# ![xTenant SuperAdmin Edit or Delete Tenant via Web Interface](xTenant_SuperAdmin_Edit-Delete_Tenant_Web.png)
 
 3/ That's all. If everything is ok you will be able to access your tenant at:
     
