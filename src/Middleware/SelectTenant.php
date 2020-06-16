@@ -96,6 +96,7 @@ class SelectTenant
 
     private function getTenantsDatabase($subdomain)
     {
+        $databaseName = $subdomain . '.db';
         $dbConnectionType = XTenantHelper::getDatabaseConnectionType();
         
         switch($dbConnectionType) {
