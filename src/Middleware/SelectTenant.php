@@ -159,7 +159,8 @@ class SelectTenant
         $link = public_path($subdomain);
         if (!is_link($link)) {
             $target = storage_path('app/' . $subdomain);
-            symlink($target, $link);
+            //@symlink($target, $link);
+            XTenantHelper::symlink($target, $link);
         }
     }
 
