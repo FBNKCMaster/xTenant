@@ -150,7 +150,7 @@ class SuperAdminController extends Controller
                     $messageBag = XTenantHelper::runMigrations($request->subdomain, $newTenant->database ?? null, 'default', null, $messageBag);
                 }
                 if ($request->filled('seeds') && $request->seeds == 1) {
-                    $messageBag = XTenantHelper::runSeeds($request->subdomain, $newTenant->database ?? null, null, $messageBag);
+                    $messageBag = XTenantHelper::runSeeds($request->subdomain, $newTenant->database ?? null, null, null, $messageBag);
                 }
                 if ($request->filled('directory') && $request->directory == 1) {
                     $messageBag = XTenantHelper::createDirectory($request->subdomain, 'default', null, $messageBag);

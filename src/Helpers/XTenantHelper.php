@@ -58,6 +58,8 @@ class XTenantHelper
             
             // Then reset back default connction
             self::resetBackDefaultConnection($defaultDatabase);
+
+            return $messageBag;
         } else {
             $error = 'ERROR: Could not connect to this tenant\'s database. Please check your connection.';
             if (is_null($thisConsoleInstance)) {
@@ -114,6 +116,8 @@ class XTenantHelper
 
             // Then reset back default connction
             self::resetBackDefaultConnection($defaultDatabase);
+
+            return $messageBag;
         } else {
             $error = 'ERROR: Could not connect to this tenant\'s database. Please check your connection.';
             if (is_null($thisConsoleInstance)) {
@@ -186,6 +190,9 @@ class XTenantHelper
             } else if ($thisConsoleInstance) {
                 $thisConsoleInstance->error($error);
             }
+        } else {
+            $link = public_path($tenant->subdomain);
+            self::unlink($link);
         }
         return $messageBag;
     }
@@ -194,7 +201,7 @@ class XTenantHelper
     {
         $link = public_path($subdomain);
         $target = storage_path('app/' . $subdomain);
-        $bCreated = @symlink($target, $link);
+        $bCreated = self::symlink($target, $link);
 
         if (!$bCreated) {
             $error = 'Could not create symbolic link for the directory of this tenant.';
@@ -479,7 +486,7 @@ class XTenantHelper
     public static function backupDir($dir, $bRemove = false, $path = null) {
         $path = $path ?? storage_path('app/' . $dir . '_' . date('YmdHis') . '_Backup');
         if ($bRemove) {
-            $b = rename(storage_path('app/' . $dir), $path);
+            $b = @rename(storage_path('app/' . $dir), $path);
         } else {
             //$b = copy(storage_path('app/' . $dir), $path);
             $b = self::rcopy(storage_path('app/' . $dir), $path);
@@ -519,6 +526,29 @@ class XTenantHelper
         closedir($dir);
         
         return is_dir($dst);
+    }
+
+    public static function symlink($target, $link)
+    {
+        // https://www.php.net/manual/en/function.php-uname.php
+        if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+            return symlink($target, $link);
+        } else {
+            exec('mklink /J ' . escapeshellarg($link) . ' ' . escapeshellarg($target), $output, $status);
+            return is_link($link) || $status === 0;
+        }
+    }
+
+    public static function unlink($link) {
+        // https://www.php.net/manual/en/function.php-uname.php
+        if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
+            return unlink($link);
+        } else {
+            // https://www.php.net/manual/en/function.symlink.php
+            //exec('junction -d "' . $link . '"');
+            exec('junction -d ' . escapeshellarg($link), $output, $status);
+            return !is_link($link) && $status === 0;
+        }
     }
 
 }
