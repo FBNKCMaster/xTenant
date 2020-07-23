@@ -22,17 +22,6 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 Vue.component('xtenant-console', require('./components/XConsole.vue').default);
 
-// bootstrap the demo
 new Vue({
   el: '#app',
-  /* data: {
-  },
-  created() {
-    
-  },
-  methods: {
-    fn() {
-      
-    }
-  } */
 });

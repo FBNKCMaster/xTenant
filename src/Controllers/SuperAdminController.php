@@ -234,14 +234,8 @@ class SuperAdminController extends Controller
                 }
                 
                 \Artisan::call($cmd, $options);
-                /* $webSessUid = session()->getId();
-                $qHash = $request->filled('q_hash') ? $request->input('q_hash') : null;
-                $webInput = $request->filled('web_input') ? $request->input('web_input') : null;
-                $cmd .= ' --web_sess_uid=' . $webSessUid . ' --q_hash=' . $qHash . ' --web_input="' . $webInput . '"'; */
-                //\Artisan::call($cmd);
                 $output = \Artisan::output();
                 session()->regenerate();
-                //dump($output);
             } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
                 if (!$request->filled('q_hash')) {
                     $output = \Artisan::output();
