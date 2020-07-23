@@ -16,7 +16,7 @@
         "cross-env": "^5.1",
         "laravel-mix": "^4.0.7",
         "laravel-mix-postcss-config": "^1.0.2",
-        "lodash": "^4.17.13",
+        "lodash": "^4.17.19",
         "resolve-url-loader": "^2.3.1",
         "tailwindcss": "^1.0.5",
         "vue": "^2.5.17",
