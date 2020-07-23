@@ -17,7 +17,7 @@ class ServiceProvider extends Base
     public function boot()
     {
         // Register package's Artisan commands
-        if ($this->app->runningInConsole()) {
+        //if ($this->app->runningInConsole()) {
             $this->commands([
                 \FBNKCMaster\xTenant\Console\Commands\Setup::class,
                 \FBNKCMaster\xTenant\Console\Commands\Create::class,
@@ -29,7 +29,7 @@ class ServiceProvider extends Base
                 \FBNKCMaster\xTenant\Console\Commands\BackupDatabase::class,
                 \FBNKCMaster\xTenant\Console\Commands\BackupDirectory::class,
             ]);
-        }
+        //}
 
         $router = $this->app['router'];
         

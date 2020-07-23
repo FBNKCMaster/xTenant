@@ -3,11 +3,11 @@
 namespace FBNKCMaster\xTenant\Console\Commands;
 
 use Artisan;
-use Illuminate\Console\Command;
+//use Illuminate\Console\Command;
 
 use FBNKCMaster\xTenant\Models\Tenant;
 
-class Edit extends Command
+class Edit extends CommandWeb
 {
     /**
      * The name and signature of the console command.
@@ -22,7 +22,7 @@ class Edit extends Command
      *
      * @var string
      */
-    protected $description = 'Edit tenant\'s infos';
+    protected $description = 'Edit tenant';
 
     /**
      * Create a new command instance.
@@ -55,7 +55,11 @@ class Edit extends Command
                 $choice = $this->choice('Are you sure you want to edit [' . $subdomain . ']?', ['Yes', 'No'], 1);
 
                 if ($choice == 'Yes') {
-                    if ($this->updateSettings($subdomain)) {
+                    $settings = $this->updateSettings($subdomain);
+                    //dump(1, $settings);
+                    //if ($this->updateSettings($subdomain)) {
+                    if ($settings) {
+                        //dump(2, $settings);
                         
                         // Ask to run migrations
                         $this->call('xtenant:migrate', ['tenant_subdomain' => $subdomain]);

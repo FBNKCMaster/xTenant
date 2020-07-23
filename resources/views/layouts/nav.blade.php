@@ -4,7 +4,7 @@
 					<div class="font-semibold p-4 text-gray-800">
 						<a class="block p-1 px-2 rounded hover:bg-gray-300 hover:text-gray-700" href="/dashboard">Dashboard</a>
 						<a class="block p-1 px-2 rounded hover:bg-gray-300 hover:text-gray-700" href="/settings">Settings</a>
-						<a class="block p-1 px-2 rounded hover:bg-gray-300 hover:text-gray-700" href="#">Console<span class="bg-gray-300 font-normal italic ml-1 p-px rounded-full text-gray-600 text-xs">Coming soon</span></a>
+						<a class="block p-1 px-2 rounded hover:bg-gray-300 hover:text-gray-700" href="/console">Console</a>
 					</div>
 					<div class="border-t p-4 w-full">
 						<div class="font-semibold px-2 text-gray-600">Manage<span class="bg-gray-300 font-normal italic ml-1 p-px rounded-full text-gray-600 text-xs">Coming soon</span></div>

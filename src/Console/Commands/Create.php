@@ -3,12 +3,12 @@
 namespace FBNKCMaster\xTenant\Console\Commands;
 
 use Artisan;
-use Illuminate\Console\Command;
+//use Illuminate\Console\Command;
 
 use FBNKCMaster\xTenant\Models\Tenant;
 use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
-class Create extends Command
+class Create extends CommandWeb
 {
     /**
      * The name and signature of the console command.
@@ -22,7 +22,7 @@ class Create extends Command
      *
      * @var string
      */
-    protected $description = 'Create new tenant';
+    protected $description = 'Create a new tenant';
 
     /**
      * Create a new command instance.

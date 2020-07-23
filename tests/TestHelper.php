@@ -174,7 +174,7 @@ class TestHelper extends TestCase
         return (Tenant::where('subdomain', $subdomain)->first() ?? null)->database ?? null;
     }
     
-    private function connectToTenantDatabase($database)
+    public function connectToTenantDatabase($database)
     {
         $defaultConnection = \DB::getDefaultConnection();
         \DB::purge($defaultConnection);
@@ -216,7 +216,16 @@ class TestHelper extends TestCase
                 ->expectsOutput(' > ' . $subdomain . ' created successfully!')
                 ->expectsOutput(' > ' . $subdomain . ' url: http://' . $subdomain . '.[your_domain]')
                 ->assertExitCode(0);
+
+        $this->assertTenantExists($subdomain);
+
+        $this->resetBackDefaultConnection();
+    }
+
+    public function assertTenantExists($subdomain)
+    {
         $tenant = Tenant::where('subdomain', $subdomain)->first();
+        $this->assertNotNull($tenant);
         $this->assertEquals($subdomain, $tenant->subdomain);
         $this->assertTrue(is_dir(storage_path('app/' . $tenant->subdomain)));
 
@@ -228,8 +237,6 @@ class TestHelper extends TestCase
         // Assert symbolic link for this tenant was created
         $link = public_path($subdomain);
         $this->assertTrue(is_link($link));
-
-        $this->resetBackDefaultConnection();
     }
     
 }

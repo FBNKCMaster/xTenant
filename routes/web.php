@@ -18,6 +18,7 @@ Route::domain($superAdminSubdomain . '.' . $domain)->group(function () use ($con
 
         Route::get('/dashboard', $controllersNamespace . 'SuperAdminController@dashboard');
         Route::get('/settings', $controllersNamespace . 'SuperAdminController@settings');
+        Route::get('/console', $controllersNamespace . 'SuperAdminController@console');
         Route::patch('/settings', $controllersNamespace . 'SuperAdminController@update_settings')->name('settings');
         Route::get('/console', $controllersNamespace . 'SuperAdminController@console');
         Route::get('/tenants/create', $controllersNamespace . 'SuperAdminController@create');
@@ -31,7 +32,16 @@ Route::domain($superAdminSubdomain . '.' . $domain)->group(function () use ($con
         Route::get('/commands', $controllersNamespace . 'SuperAdminController@commands');
         Route::get('/installation', $controllersNamespace . 'SuperAdminController@installation');
         Route::get('/documentation', $controllersNamespace . 'SuperAdminController@documentation');
+        
+        Route::post('/cmd', $controllersNamespace . 'SuperAdminController@cmd');
+        
     });
     
+    
+});
 
+// This route works as proxy for the js file
+Route::get($superAdminSubdomain . '/public/js/app.js', function () {
+    return response(file_get_contents(__DIR__ . '/../public/js/app.js'))
+            ->header('Content-Type', 'application/x-javascript');
 });

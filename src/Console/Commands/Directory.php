@@ -3,12 +3,12 @@
 namespace FBNKCMaster\xTenant\Console\Commands;
 
 use Artisan;
-use Illuminate\Console\Command;
+//use Illuminate\Console\Command;
 
 use FBNKCMaster\xTenant\Models\Tenant;
 use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
-class Directory extends Command
+class Directory extends CommandWeb
 {
     /**
      * The name and signature of the console command.
@@ -23,7 +23,7 @@ class Directory extends Command
      *
      * @var string
      */
-    protected $description = 'Create directory for specified tenant';
+    protected $description = 'Create the directory for the specified tenant';
 
     /**
      * Create a new command instance.
