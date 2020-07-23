@@ -3,12 +3,12 @@
 namespace FBNKCMaster\xTenant\Console\Commands;
 
 use Artisan;
-use Illuminate\Console\Command;
+//use Illuminate\Console\Command;
 
 use FBNKCMaster\xTenant\Models\Tenant;
 use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
-class BackupDirectory extends Command
+class BackupDirectory extends CommandWeb
 {
     /**
      * The name and signature of the console command.
@@ -24,7 +24,7 @@ class BackupDirectory extends Command
      *
      * @var string
      */
-    protected $description = 'Destroy the tenant';
+    protected $description = 'Backup tenant\'s directory';
 
     /**
      * Create a new command instance.

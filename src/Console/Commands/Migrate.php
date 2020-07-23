@@ -3,12 +3,12 @@
 namespace FBNKCMaster\xTenant\Console\Commands;
 
 use Artisan;
-use Illuminate\Console\Command;
+//use Illuminate\Console\Command;
 
 use FBNKCMaster\xTenant\Models\Tenant;
 use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
-class Migrate extends Command
+class Migrate extends CommandWeb
 {
     /**
      * The name and signature of the console command.
@@ -23,7 +23,7 @@ class Migrate extends Command
      *
      * @var string
      */
-    protected $description = 'Run migrations for specified tenant';
+    protected $description = 'Run migrations for the specified tenant';
 
     /**
      * Create a new command instance.
