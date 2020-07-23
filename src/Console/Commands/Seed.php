@@ -3,12 +3,12 @@
 namespace FBNKCMaster\xTenant\Console\Commands;
 
 use Artisan;
-use Illuminate\Console\Command;
+//use Illuminate\Console\Command;
 
 use FBNKCMaster\xTenant\Models\Tenant;
 use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
-class Seed extends Command
+class Seed extends CommandWeb
 {
     /**
      * The name and signature of the console command.
@@ -23,7 +23,7 @@ class Seed extends Command
      *
      * @var string
      */
-    protected $description = 'Run seeds for specified tenant';
+    protected $description = 'Run seeds for the specified tenant';
 
     /**
      * Create a new command instance.

@@ -126,9 +126,9 @@ class SuperAdminController extends Controller
             'subdomain' => ['string', 'max:255', 'unique:tenants'],
             'name' => ['string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'migrations' => ['boolean'],
-            'seeds' => ['boolean'],
-            'directory' => ['boolean'],
+            'migrations' => ['numeric'],
+            'seeds' => ['numeric'],
+            'directory' => ['numeric'],
             'status' => ['boolean'],
         ]);
 
@@ -170,9 +170,9 @@ class SuperAdminController extends Controller
             'subdomain' => ['string', 'max:255', 'unique:tenants'],
             'name' => ['string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'migrations' => ['boolean'],
-            'seeds' => ['boolean'],
-            'directory' => ['boolean'],
+            'migrations' => ['numeric'],
+            'seeds' => ['numeric'],
+            'directory' => ['numeric'],
             'status' => ['boolean'],
         ]);
 
@@ -208,6 +208,77 @@ class SuperAdminController extends Controller
         }
     
         return redirect()->back()->withErrors($messageBag ?? []);
+    }
+
+    public function cmd(Request $request)
+    {
+        $cmd = !$request->filled('cmd') || $request->input('cmd') == 'help' ? 'list' : 'xtenant:'. $request->input('cmd');
+        $formatedOutput = [];
+        $color = 'green';
+        if ($cmd == 'xtenant:web_sess_clear') {
+            session()->regenerate();
+            $output = 'Session cleared';
+        } else if ($cmd == 'xtenant:setup') {
+            $output = 'This is a very risky command. You should not run it here';
+            $color = 'red';
+        } else {
+            try {
+                if ($cmd == 'list') {
+                    $options = [];
+                } else {
+                    $options = [
+                        '--web_sess_uid' => session()->getId(),
+                        '--q_hash' => $request->filled('q_hash') ? $request->input('q_hash') : null,
+                        '--web_input' => $request->filled('web_input') ? $request->input('web_input') : null,
+                    ];
+                }
+                
+                \Artisan::call($cmd, $options);
+                /* $webSessUid = session()->getId();
+                $qHash = $request->filled('q_hash') ? $request->input('q_hash') : null;
+                $webInput = $request->filled('web_input') ? $request->input('web_input') : null;
+                $cmd .= ' --web_sess_uid=' . $webSessUid . ' --q_hash=' . $qHash . ' --web_input="' . $webInput . '"'; */
+                //\Artisan::call($cmd);
+                $output = \Artisan::output();
+                session()->regenerate();
+                //dump($output);
+            } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
+                if (!$request->filled('q_hash')) {
+                    $output = \Artisan::output();
+                }
+                $outputMessage = unserialize($e->getMessage());
+                $formatedMessage = [
+                    'action' => 'ask',
+                    'color' => $outputMessage['color'] ?? 'orange',
+                    'text' => ' > ' . $outputMessage['question'],
+                    'q_hash' => $outputMessage['q_hash'],
+                    'choices' => $outputMessage['choices'] ?? null,
+                    'default' => $outputMessage['default'] ?? null,
+                    'placeholder' => isset($outputMessage['choices']) ? ($outputMessage['default'] ?? null) : $outputMessage['question']
+                ];
+            } catch (\Exception $th) {
+                $output = $th->getMessage();
+                $color = 'red';
+            }
+        }
+        
+        if (isset($output) && !empty($output)) {
+            $lines = explode("\n", $output);
+            foreach ($lines as  $line) {
+                $line = preg_replace('/<\/*warning>/', '', $line, -1, $count);
+                $formatedOutput[] = [
+                    'action' => 'display',
+                    'text' => $line,
+                    'color' => $count > 1 ? 'yellow' : $color
+                ];
+            }
+        }
+
+        if (isset($formatedMessage)) {
+            $formatedOutput[] = $formatedMessage;
+        }
+
+        return $formatedOutput;
     }
 
 }

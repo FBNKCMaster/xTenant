@@ -532,7 +532,8 @@ class XTenantHelper
     {
         // https://www.php.net/manual/en/function.php-uname.php
         if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-            return symlink($target, $link);
+            @symlink($target, $link);
+            return is_link($link);
         } else {
             exec('mklink /J ' . escapeshellarg($link) . ' ' . escapeshellarg($target), $output, $status);
             return is_link($link) || $status === 0;

@@ -3,12 +3,12 @@
 namespace FBNKCMaster\xTenant\Console\Commands;
 
 use Artisan;
-use Illuminate\Console\Command;
+//use Illuminate\Console\Command;
 
 use FBNKCMaster\xTenant\Models\Tenant;
 use FBNKCMaster\xTenant\Helpers\XTenantHelper;
 
-class Destroy extends Command
+class Destroy extends CommandWeb
 {
     /**
      * The name and signature of the console command.
@@ -23,7 +23,7 @@ class Destroy extends Command
      *
      * @var string
      */
-    protected $description = 'Destroy the tenant';
+    protected $description = 'Destroy the specified tenant';
 
     /**
      * Create a new command instance.
