@@ -26,8 +26,8 @@ class SelectTenant
         // Check if xTenant is setup
         if (\Schema::hasTable('tenants') && \Schema::hasTable('x_tenant_settings')) {
 
-            // Check if it's SuperAdmin
-            if (XTenantSetting::isSuperAdmin($request)) {
+            // Check if it's the root domain or the SuperAdmin subdomain then skip
+            if (XTenantSetting::isRootDomain($request) || XTenantSetting::isSuperAdmin($request)) {
                 return $next($request);
             }
 
@@ -84,10 +84,10 @@ class SelectTenant
                 }
             }
 
-            if (is_null($tenant) || is_null($database)) {
+            if (config('app.debug') && (is_null($tenant) || is_null($database))) {
                 abort(403, '[' . $subdomain . '] doesn\'t exist. You should run `php artisan xtenant:new` to register it.');
             }
-        } else {
+        } else if (config('app.debug')) {
             abort(403, 'You should run `php artisan xtenant:setup` first to setup xTenant.');
         }
 

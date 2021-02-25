@@ -33,6 +33,20 @@ class XTenantSetting extends Authenticatable
         $this->attributes['password'] = Hash::make($password);
     }
 
+    public static function isRootDomain(Request $request)
+    {
+        $host = $request->getHost();
+        $xTenantSettings = self::getSettings();
+        
+        if ($xTenantSettings->allow_www && strpos($host, 'www.') === 0) {
+            $host = str_replace('www.', '', $host);
+        }
+
+        $rootDomain = self::getRootDomain($host);
+        
+        return $host == $rootDomain;
+    }
+
     public static function isSuperAdmin(Request $request)
     {
         list($subdomain) = explode('.', $request->getHost(), 2);
@@ -45,7 +59,14 @@ class XTenantSetting extends Authenticatable
         return self::first();
     }
 
-    public static function getDomain()
+    public static function getRootDomain($host)
+    {
+        $parts = explode('.', $host);
+
+        return implode('.', array_slice($parts, -2, 2));
+    }
+
+    /* public static function getDomain()
     {
         $xTenantSettings = self::getSettings();
         $reservedSubdomains[] = ($xTenantSettings->super_admin_subdomain ?? 'xtenant') . '.';
@@ -55,7 +76,7 @@ class XTenantSetting extends Authenticatable
         $registredSubdomains = array_map(function ($subdomain) { return $subdomain . '.'; }, Tenant::getRegistredSubdomains()->toArray());
         $subdomains = array_merge($reservedSubdomains, $registredSubdomains);
         return str_replace($subdomains, '', request()->getHost()); 
-    }
+    } */
 
     public static function getSuperAdminSubdomain()
     {

@@ -3,7 +3,7 @@
 use FBNKCMaster\xTenant\Models\XTenantSetting;
 //use FBNKCMaster\xTenant\Controllers\SuperAdminController;
 
-$domain = XTenantSetting::getDomain();
+$domain = XTenantSetting::getRootDomain();
 $superAdminSubdomain = XTenantSetting::getSuperAdminSubdomain();
 $controllersNamespace = 'FBNKCMaster\xTenant\Controllers\\';
 
