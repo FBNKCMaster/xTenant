@@ -56,7 +56,7 @@ class SelectTenant
                         'xtenant.database.default' => $defaultDatabase,
                         'xtenant.database.current' => $database,
 
-                        'xtenant.domain' => XTenantSetting::getDomain(),
+                        'xtenant.domain' => XTenantSetting::getRootDomain(),
                         'xtenant.super_admin_subdomain' => $xTenantSettings->super_admin_subdomain,
                         'xtenant.subdomain' => $subdomain,
                         'xtenant.allow_www' => $xTenantSettings->allow_www,
