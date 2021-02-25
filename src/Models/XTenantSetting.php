@@ -42,7 +42,7 @@ class XTenantSetting extends Authenticatable
             $host = str_replace('www.', '', $host);
         }
 
-        $rootDomain = self::getRootDomain($host);
+        $rootDomain = self::getRootDomain();
         
         return $host == $rootDomain;
     }
@@ -59,9 +59,9 @@ class XTenantSetting extends Authenticatable
         return self::first();
     }
 
-    public static function getRootDomain($host)
+    public static function getRootDomain()
     {
-        $parts = explode('.', $host);
+        $parts = explode('.', request()->getHost());
 
         return implode('.', array_slice($parts, -2, 2));
     }
