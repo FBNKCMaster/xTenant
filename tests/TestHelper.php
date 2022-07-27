@@ -10,7 +10,7 @@ use FBNKCMaster\xTenant\Models\Tenant;
 
 class TestHelper extends TestCase
 {
-    // Don't work with sqlite :memory: for some raison
+    // Doesn't work with sqlite :memory: for some raison
     // so I created resetDatabase() method to reset
     // everything and to mimic RefreshDatabase
     // but you still can use it with mysql
